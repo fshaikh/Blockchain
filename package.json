@@ -1,0 +1,11 @@
+{
+  "name": "customblockchain",
+  "version": "0.1.0",
+  "description": "Create a blockchain from scratch",
+  "main": "server/blockchainServer.js",
+  "scripts": {
+    "start": "node server/blockchainServer.js"
+  },
+  "author": "Furqan Shaikh",
+  "license": "ISC"
+}

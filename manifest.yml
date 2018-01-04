@@ -1,0 +1,7 @@
+---
+applications:
+- name: BlockchainServer
+  instances: 1
+  memory: 256M
+  command: npm start
+  
