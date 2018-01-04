@@ -4,16 +4,14 @@
 var http = require('http').createServer();
 var config = require('../config');
 var BlockchainController = require('./blockchainController').BlockchainController;
+var PeerController = require('./peerController').PeerController;
 var url = require('url');
 
 http.on('request',handleRequest);
 
 
 function handleRequest(request,response){
-    initRequest(request,response);
-
-
-   
+    initRequest(request,response); 
 }
 
 function initRequest(req,res){
@@ -32,20 +30,46 @@ function initRequest(req,res){
 
 function handleRoutes(request,response){
     var urlParts = url.parse(request.url);
+    var path = urlParts.pathname;
+    var method = request.method;
     console.log(urlParts.path);
-    if(urlParts.path === '/api/blockchain/transactions' && request.method === 'POST'){
+    if(path === '/api/blockchain/transactions' && method === 'POST'){
         var controller = new BlockchainController();
         controller.createTransaction(request,response);
-    }else if(urlParts.path === '/api/blockchain' && request.method === 'GET'){
+    }else if(path === '/api/blockchain' && method === 'GET'){
         var controller = new BlockchainController();
         controller.getBlockchain(request,response);
-    }else if(urlParts.path === '/api/blockchain/mine' && request.method === 'POST'){
+    }else if(path === '/api/blockchain/mine' && method === 'POST'){
         var controller = new BlockchainController();
         controller.mineBlockchain(request,response);
+    }else if(path === '/api/blockchain/resolve' && method === 'POST'){
+        var controller = new BlockchainController();
+        controller.resolveBlockchain(request,response);
+    }else if(path === '/api/peers' && method === 'POST'){
+        var controller = new PeerController();
+        controller.addPeer(request,response);
+    }else if(path === '/api/peers' && method === 'GET'){
+        var controller = new PeerController();
+        controller.getPeers(request,response);
     }
 }
 
+_registerHandlers();
 
 http.listen(config.env.port,() =>{
     console.log(`Blockchain Node Listening on ${config.env.port}`)
 });
+
+
+function _registerHandlers(){
+    // Register catchall uncaught exception at process level
+    process.on('uncaughtException', _handleUncaughtException);
+}
+
+/**
+ * Event handler for uncaught exception
+ * @param err - Object containing error information
+ */
+function _handleUncaughtException(err) {
+    console.log(`Uncaught Exception: ${err}`);
+}

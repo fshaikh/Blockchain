@@ -27,7 +27,7 @@
 
     BlockchainController.prototype.getBlockchain = function(req,res){
         var blockchain = blockchainService.getBlockchain();
-
+        console.log(blockchain);
         res.writeHead(200,{'content-type':'application/json'});
         res.end(JSON.stringify(blockchain));
     }
@@ -37,6 +37,14 @@
 
         res.writeHead(201,{'content-type':'application/json'});
         res.end(JSON.stringify(blockchain));
+    }
+
+    BlockchainController.prototype.resolveBlockchain = async function(req,res){
+        var status = await blockchainService.doConsensus();
+        
+       
+        res.writeHead(201,{'content-type':'application/json'});
+        res.end(status.toString());
     }
 
     return {

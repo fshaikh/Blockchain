@@ -6,6 +6,7 @@
     var Transaction = require('./transaction').Transaction;
     var Block = require('./block').Block;
     var cryptoService = require('../services/cryptoService');    
+
     
     /**
      *  Constructor function for a blockchain
@@ -59,30 +60,12 @@
     Blockchain.prototype.getPreviousHash = function(){
         // get the previous block from the chain
         var previousBlock = this.blocks[this.blocks.length - 1];
-        // get a json representation of the block
-        // NOTE: Ensure the keys are sorted to prevent generating inconsistent hashes
-        // NOTE: JSON.stringify takes as second parameter a replacer function using which once cn alter the stringification result
-        // In our case we are fetching the own enumerable peoperties of the Block object and sorting them to create an ordered dictionary
-        var json = JSON.stringify(previousBlock,Object.keys(previousBlock).sort());
-        // compute the hash
-        var hash = cryptoService.getHash(json);
-        return hash;
+        return require('../services/blockchainService').getBlockHash(previousBlock);
     };
 
-    /**
-     * Validates the Proof of Work Problem
-     * @param {*} lastProofOfWork 
-     * @param {*} proof 
-     * 
-     */
-    Blockchain.prototype.validateProofOfWork = function(lastProofOfWork,proof){
-        // Combining Last POW and number
-         var guess = `${lastProofOfWork}${proof}`;
-        // Computing the hash
-         var hash = cryptoService.getHash(guess);
-        // Checking if the hash has 4 leading zeroes. To increase the computation time, you can increase the leading zeroes
-        return hash.substring(0,4) === '0000';
-    };
+    
+
+    
 
     /**
      * Proof Of Work is how blockchain mines (creates) a new block. When new transactions are created in the network,
@@ -102,7 +85,7 @@
     Blockchain.prototype.generateProofOfWork = function(lastProofOfWork){
         var proof = 0;
         var times = 0;
-        while(!this.validateProofOfWork(lastProofOfWork,proof)){
+        while(!require('../services/blockchainService').validateProofOfWork(lastProofOfWork,proof)){
             proof++;
             times++;
         }
@@ -112,6 +95,14 @@
 
     Blockchain.prototype.getLastBlock = function(){
         return this.blocks[this.blocks.length - 1];
+    }
+
+    Blockchain.prototype.getChainLength = function(){
+        return this.blocks.length;
+    }
+
+    Blockchain.prototype.getBlocks = function(){
+        return this.blocks;
     }
 
     return{
