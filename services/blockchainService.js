@@ -3,6 +3,8 @@ module.exports = (function(){
     var Blockchain = require('../data structures/blockchain').BlockChain;
     var PeerService = require('./peerService');
     var cryptoService = require('./cryptoService'); 
+    var proofOfWorkService = require('./proofOfWorkService');
+    var childProcess = require('child_process');
 
     var blockchain = new Blockchain();
 
@@ -19,14 +21,49 @@ module.exports = (function(){
         return blockchain;
     }
 
+    /**
+     * Mines the block. This involves:
+     * 1. Generating a Proof Of Work to solve a CPU-heavy puzzle
+     * 2. Creating a new Block
+     * 3. Add pending transactions to the new block
+     */
     function mineBlockchain(){
         // Get last proof of work from the last block in the blockchain
         var lastProofOfWork = blockchain.getLastBlock().proofOfWork;
-        // Generate new proof of work. This is CPU-intensive. Add to worker process
-        var proof = blockchain.generateProofOfWork(lastProofOfWork);
+        var proof = proofOfWorkService.generateProofOfWork(lastProofOfWork);
         // create the new block
         blockchain.addBlock(proof);
-        return blockchain;
+        return blockchain;   
+    }
+
+    async function mineBlockchainAsync(){
+        return new Promise((resolve,reject)=>{
+            // Get last proof of work from the last block in the blockchain
+            var lastProofOfWork = blockchain.getLastBlock().proofOfWork;
+            // Generate new proof of work. This is CPU-intensive. Add to worker process
+            // 1. Fork the child process passing the module to be loaded in the child process. Node will spawn a new Node
+            //    process with its own V8 instance, memory, etc. A separate IPC connection will be established between
+            //    parent and forked process which can be used to establsh communication channel
+            var forkedService = childProcess.fork('./services/proofOfWorkService.js');
+            // 2. Send a message to the child process
+            forkedService.send({'message':'generate',lastProofOfWork: lastProofOfWork});
+            // 3. Listen for response from the child process
+            // NOTE: Spawning a large number ofr child processes will have performance implication. Child processes will exit:
+            //          1. When the parent process exits OR
+            //          2. Explicitly exiting the child process
+            forkedService.on('message',(proof)=>{
+                // create the new block
+                blockchain.addBlock(proof);
+                resolve(blockchain);
+            }); 
+            forkedService.on('exit',()=>{
+                console.log('child exited');
+            });
+            forkedService.on('error',(reason)=>{
+                reject(reason);
+            });
+        });
+        
     }
 
     /**
@@ -116,7 +153,7 @@ module.exports = (function(){
             }
 
             // 2. Validate the Proof of Work
-            if(!validateProofOfWork(previousBlock.proofOfWork,element.proofOfWork)){
+            if(!proofOfWorkService.validateProofOfWork(previousBlock.proofOfWork,element.proofOfWork)){
                 return false;
             }
 
@@ -129,28 +166,15 @@ module.exports = (function(){
         blockchain.blocks = newBlockchain.blocks;
     }
 
-    /**
-     * Validates the Proof of Work Problem
-     * @param {*} lastProofOfWork 
-     * @param {*} proof 
-     * 
-     */
-    function validateProofOfWork(lastProofOfWork,proof){
-        // Combining Last POW and number
-         var guess = `${lastProofOfWork}${proof}`;
-        // Computing the hash
-         var hash = cryptoService.getHash(guess);
-        // Checking if the hash has 4 leading zeroes. To increase the computation time, you can increase the leading zeroes
-        return hash.substring(0,4) === '0000';
-    };
+    
 
     return {
         addTransaction : addTransaction,
         getBlockchain: getBlockchain,
         mineBlockchain: mineBlockchain,
+        mineBlockchainAsync:mineBlockchainAsync,
         doConsensus: doConsensus,
-        getBlockHash:getBlockHash,
-        validateProofOfWork: validateProofOfWork
+        getBlockHash:getBlockHash
     };
 
 })();

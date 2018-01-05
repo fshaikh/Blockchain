@@ -32,8 +32,8 @@
         res.end(JSON.stringify(blockchain));
     }
 
-    BlockchainController.prototype.mineBlockchain = function(req,res){
-        var blockchain = blockchainService.mineBlockchain();
+    BlockchainController.prototype.mineBlockchain = async function(req,res){
+        var blockchain = await blockchainService.mineBlockchainAsync();
 
         res.writeHead(201,{'content-type':'application/json'});
         res.end(JSON.stringify(blockchain));

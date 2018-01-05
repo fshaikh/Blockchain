@@ -67,31 +67,7 @@
 
     
 
-    /**
-     * Proof Of Work is how blockchain mines (creates) a new block. When new transactions are created in the network,
-     * miners (special nodes on the blockchain network) compete with each other to solve a problem. When any one miner solves the problem
-     * first, it can generate the new block (adding transactions to it and adding to blockchain). The new blockchain is then propogated
-     * through the entire network
-     * The problem to be solved has the following characteristics:
-     *  1. Easy to Verify
-     *  2. Difficult to Find
-     *  3. Computationally Expensive
-     * The miner solving the problem is awarded (For eg: financially by getting issued a cryptocurrency)
-     * Bitcoin uses a variation of POW algorithm called "HashCash". Read it up on wikipedia. The basic problem implemented in this code is as:
-     * 
-     * Find a number N that when hashed with the previous block’s POW number, a hash with 4 leading 0s is produced.
-     * @param {*} lastProofOfWork 
-     */
-    Blockchain.prototype.generateProofOfWork = function(lastProofOfWork){
-        var proof = 0;
-        var times = 0;
-        while(!require('../services/blockchainService').validateProofOfWork(lastProofOfWork,proof)){
-            proof++;
-            times++;
-        }
-        console.log(times);
-        return proof;
-    };
+   
 
     Blockchain.prototype.getLastBlock = function(){
         return this.blocks[this.blocks.length - 1];
