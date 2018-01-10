@@ -6,4 +6,5 @@ Daniel gives a great hands down explaination of Blockchain (Data Structure, Mini
 Phython and Flask. To "Learn by Doing", this repository contains the code written in JavaScript and Node .
 
 
-
+# Blockchain Data Structure
+![Blockchain Data Structure](https://github.com/fshaikh/Blockchain/blob/master/Blockchain.jpg)
